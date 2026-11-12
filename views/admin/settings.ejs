@@ -1,0 +1,81 @@
+<%- include('../partials/admin-top', { title: 'সেটিংস' }) %>
+<div class="page-h"><div><h1>সেটিংস</h1></div></div>
+<nav class="settings-nav"><a href="#form">জমার ফরম</a><a href="#doc">Word ফাইল</a><a href="#mail">ই-মেইল</a><a href="#account">অ্যাকাউন্ট</a></nav>
+
+<div class="two-col" style="grid-template-columns:minmax(0,1fr) minmax(0,1fr)">
+<div>
+  <form class="panel" id="form" method="post" action="/admin/settings">
+    <input type="hidden" name="section" value="form">
+    <h2>জমার ফরম</h2>
+    <div class="field"><label class="check"><input type="checkbox" name="form_open" value="1" <%= S.form_open === '1' ? 'checked' : '' %>> নতুন তথ্য গ্রহণ চালু</label><div class="hint">বন্ধ করলে নতুন জমা নেওয়া হবে না; আগে জমা দেওয়া বিশ্ববিদ্যালয় নিজের লিংক থেকে সংশোধন করতে পারবে।</div></div>
+    <div class="field"><label for="dl">শেষ তারিখ</label><input id="dl" name="deadline" type="date" value="<%= S.deadline %>"><div class="hint">ফরমের উপরে দেখানো হবে</div></div>
+    <div class="field"><label for="fn">ফরমের নির্দেশনা</label><textarea id="fn" name="form_notice" rows="3"><%= S.form_notice %></textarea></div>
+    <div class="field"><label for="bu">ওয়েবসাইটের ঠিকানা</label><input id="bu" name="public_base_url" type="url" class="lat" value="<%= S.public_base_url %>" placeholder="https://diary.bac.gov.bd"><div class="hint">ই-মেইলে পাঠানো লিংকে ব্যবহার হবে। খালি থাকলে বর্তমান ঠিকানা: <span class="lat"><%= submitUrl.replace('/submit','') %></span></div></div>
+    <button class="btn btn-primary" type="submit">সংরক্ষণ করুন</button>
+  </form>
+
+  <form class="panel" id="doc" method="post" action="/admin/settings">
+    <input type="hidden" name="section" value="doc">
+    <h2>Word ফাইল</h2>
+    <div class="field"><label for="df">বাংলা ফন্ট</label>
+      <input id="df" name="doc_font" type="text" list="fonts" value="<%= S.doc_font %>">
+      <datalist id="fonts"><option value="SutonnyOMJ"><option value="Nikosh"><option value="Kalpurush"><option value="SolaimanLipi"><option value="Noto Sans Bengali"><option value="Vrinda"></datalist>
+      <div class="hint">ইউনিকোড ফন্ট হতে হবে। SutonnyOMJ দেখতে নমুনার SutonnyMJ-এর মতোই।</div></div>
+    <div class="field"><label for="lf">ইংরেজি (ই-মেইল/ওয়েবসাইট) ফন্ট</label><input id="lf" name="latin_font" type="text" value="<%= S.latin_font %>"></div>
+    <div class="field"><label class="check"><input type="checkbox" name="bangla_digits" value="1" <%= S.bangla_digits !== '0' ? 'checked' : '' %>> ফোন নম্বর ও ঠিকানার সংখ্যা বাংলায় (০১৭১১-৪৩২২১৮)</label></div>
+    <p class="hint">সংরক্ষণ করলে আগের তৈরি করা ফাইলগুলো “পুরনো” চিহ্নিত হবে।</p>
+    <button class="btn btn-primary" type="submit">সংরক্ষণ করুন</button>
+  </form>
+</div>
+<div>
+  <form class="panel" id="mail" method="post" action="/admin/settings" autocomplete="off">
+    <input type="hidden" name="section" value="mail">
+    <h2>ই-মেইল (SMTP)</h2>
+    <p class="small muted">Gmail হলে: host <span class="lat">smtp.gmail.com</span>, port 465, SSL চালু, এবং Google অ্যাকাউন্টের App Password ব্যবহার করুন।</p>
+    <div class="grid g2">
+      <div class="field"><label for="sh">SMTP host</label><input id="sh" name="smtp_host" type="text" class="lat" value="<%= S.smtp_host %>" placeholder="smtp.gmail.com"></div>
+      <div class="field"><label for="sp">Port</label><input id="sp" name="smtp_port" type="number" value="<%= S.smtp_port %>"></div>
+      <div class="field"><label for="su">ইউজারনেম</label><input id="su" name="smtp_user" type="text" class="lat" value="<%= S.smtp_user %>" autocomplete="off"></div>
+      <div class="field"><label for="spw">পাসওয়ার্ড</label><input id="spw" name="smtp_pass" type="password" placeholder="<%= S.smtp_pass ? 'সংরক্ষিত আছে — বদলাতে লিখুন' : '' %>" autocomplete="new-password"></div>
+    </div>
+    <div class="field"><label class="check"><input type="checkbox" name="smtp_secure" value="1" <%= S.smtp_secure === '1' ? 'checked' : '' %>> SSL/TLS (port 465)</label></div>
+    <div class="field"><label for="mf">প্রেরকের ঠিকানা</label><input id="mf" name="mail_from" type="text" class="lat" value="<%= S.mail_from %>" placeholder="BAC Diary &lt;diary@bac.gov.bd&gt;"></div>
+    <div class="field"><label for="an">নতুন জমার খবর পাবেন</label><input id="an" name="admin_notify_email" type="text" class="lat" value="<%= S.admin_notify_email %>" placeholder="admin@bac.gov.bd"><div class="hint">খালি রাখলে পাঠানো হবে না</div></div>
+    <div class="field"><label class="check"><input type="checkbox" name="notify_university" value="1" <%= S.notify_university === '1' ? 'checked' : '' %>> জমা, সংশোধন ও অনুমোদনের খবর বিশ্ববিদ্যালয়কে ই-মেইলে জানান</label></div>
+    <div class="field"><label for="es">Word ফাইল পাঠানোর ই-মেইলের বিষয়</label><input id="es" name="email_subject" type="text" value="<%= S.email_subject %>"></div>
+    <div class="field"><label for="eb">বার্তা</label><textarea id="eb" name="email_body" rows="6"><%= S.email_body %></textarea><div class="hint">{university} লিখলে বিশ্ববিদ্যালয়ের নাম বসে যাবে</div></div>
+    <button class="btn btn-primary" type="submit">সংরক্ষণ করুন</button>
+  </form>
+  <form class="panel" method="post" action="/admin/settings/test-mail">
+    <h3>ই-মেইল পরীক্ষা</h3>
+    <div class="copy-row"><input name="to" type="email" class="lat" placeholder="আপনার ই-মেইল" aria-label="পরীক্ষামূলক ই-মেইল ঠিকানা"><button class="btn" type="submit">পরীক্ষা করুন</button></div>
+  </form>
+
+  <div class="panel" id="account">
+    <h2>অ্যাকাউন্ট</h2>
+    <form method="post" action="/admin/account/password">
+      <h3 style="margin-bottom:.6rem">পাসওয়ার্ড বদলান</h3>
+      <input type="text" name="username" value="<%= admin.username %>" autocomplete="username" hidden>
+      <div class="field"><label for="cp">বর্তমান পাসওয়ার্ড</label><input id="cp" name="current" type="password" autocomplete="current-password" required></div>
+      <div class="grid g2">
+        <div class="field"><label for="np">নতুন পাসওয়ার্ড</label><input id="np" name="password" type="password" autocomplete="new-password" minlength="8" required></div>
+        <div class="field"><label for="np2">আবার লিখুন</label><input id="np2" name="confirm" type="password" autocomplete="new-password" required></div>
+      </div>
+      <button class="btn btn-primary" type="submit">পাসওয়ার্ড বদলান</button>
+    </form>
+    <h3 style="margin:1.5rem 0 .6rem">অ্যাডমিন ব্যবহারকারী</h3>
+    <table class="list"><tbody>
+      <% admins.forEach(a => { %><tr><td><strong><%= a.display_name %></strong> <span class="small muted lat"><%= a.username %></span></td><td style="text-align:right"><% if (a.id !== admin.id) { %><form method="post" action="/admin/admins/<%= a.id %>/delete" data-confirm="এই অ্যাডমিনকে মুছবেন?"><button class="btn btn-ghost btn-sm btn-danger" type="submit">মুছুন</button></form><% } else { %><span class="small muted">আপনি</span><% } %></td></tr><% }) %>
+    </tbody></table>
+    <form method="post" action="/admin/admins" style="margin-top:1rem">
+      <div class="grid g3">
+        <div class="field"><label for="na">নাম</label><input id="na" name="display_name" type="text"></div>
+        <div class="field"><label for="nu">ইউজারনেম</label><input id="nu" name="username" type="text" class="lat" required autocomplete="off"></div>
+        <div class="field"><label for="npw">পাসওয়ার্ড</label><input id="npw" name="password" type="password" minlength="8" required autocomplete="new-password"></div>
+      </div>
+      <button class="btn" type="submit">অ্যাডমিন যোগ করুন</button>
+    </form>
+  </div>
+</div>
+</div>
+<%- include('../partials/admin-bottom') %>

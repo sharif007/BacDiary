@@ -1,0 +1,25 @@
+<%- include('../partials/admin-top', { title: sub ? 'সম্পাদনা: ' + sub.univ_name : 'নতুন তথ্য যোগ' }) %>
+<div class="page-h">
+  <div>
+    <a href="<%= sub ? '/admin/s/' + sub.id : '/admin' %>" class="small">← ফিরে যান</a>
+    <h1 style="margin-top:.3rem"><%= sub ? 'তথ্য সম্পাদনা' : 'নিজে তথ্য যোগ করুন' %></h1>
+    <p><%= sub ? 'অ্যাডমিন হিসেবে যেকোনো ঘর, এমনকি পদবিও বদলাতে পারবেন। সংরক্ষণের পর Word ফাইল আবার তৈরি করুন।' : 'কাগজে বা ই-মেইলে পাওয়া তথ্য এখানে লিখুন। জমাটি “পর্যালোচনাধীন” অবস্থায় যোগ হবে।' %></p>
+  </div>
+</div>
+<form id="mainForm" class="pub-wrap" style="padding:0;max-width:none" novalidate>
+  <div class="flash error err-summary" id="errSummary" role="alert" hidden></div>
+  <div id="formRoot"></div>
+  <aside class="preview-col" aria-label="ডায়েরিতে যেভাবে ছাপা হবে">
+    <button type="button" class="preview-toggle" id="previewToggle" aria-expanded="false"><span>ডায়েরিতে যেভাবে ছাপা হবে</span><span>▴</span></button>
+    <div class="preview-cap"><strong>ডায়েরিতে যেভাবে ছাপা হবে</strong></div>
+    <div class="sheet"><div class="diary-page" id="preview"></div></div>
+  </aside>
+  <div class="submit-bar">
+    <a class="btn" href="<%= sub ? '/admin/s/' + sub.id : '/admin' %>">বাতিল</a>
+    <button type="submit" class="btn btn-primary btn-lg">পরিবর্তন সংরক্ষণ করুন</button>
+  </div>
+</form>
+<script>window.FORM_CONFIG = <%- JSON.stringify({ data, editable: true, mode: 'admin', endpoint: sub ? '/admin/s/' + sub.id + '/edit' : '/admin/new', banglaDigits: S.bangla_digits !== '0', adminMode: true }).replace(/</g, '\\u003c') %>;</script>
+<script src="/static/js/shared.js"></script>
+<script src="/static/js/form.js"></script>
+<%- include('../partials/admin-bottom') %>

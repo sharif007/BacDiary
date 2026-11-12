@@ -1,0 +1,157 @@
+<%- include('../partials/admin-top', { title: sub.univ_name || 'জমা' }) %>
+<% const ACT = { submitted:'বিশ্ববিদ্যালয় জমা দিয়েছে', resubmitted:'সংশোধন করে আবার জমা দিয়েছে', approved:'অনুমোদিত', changes:'সংশোধনের জন্য ফেরত', rejected:'বাতিল', edited:'অ্যাডমিন তথ্য সম্পাদনা করেছেন', generated:'Word ফাইল তৈরি', emailed:'ই-মেইলে পাঠানো হয়েছে', invited:'আমন্ত্রণ লিংক তৈরি', created:'অ্যাডমিন যোগ করেছেন', reopened:'আবার পর্যালোচনায়', serial:'ক্রমিক নম্বর হালনাগাদ' }; %>
+<div class="page-h">
+  <div>
+    <a href="/admin" class="small">← সকল জমা</a>
+    <h1 style="margin-top:.3rem"><%= sub.univ_name || '(নাম নেই)' %></h1>
+    <p><span class="pill <%= sub.status %>"><%= STATUS[sub.status].bn %></span> <span class="small muted" style="margin-left:.5rem">জমা: <%= fmtDate(sub.submitted_at || sub.created_at) %>, সর্বশেষ হালনাগাদ: <%= fmtDate(sub.updated_at) %></span></p>
+  </div>
+  <div class="actions no-print">
+    <a class="btn" href="/admin/s/<%= sub.id %>/edit"><svg><use href="#i-edit"/></svg>তথ্য সম্পাদনা</a>
+    <a class="btn" href="/admin/s/<%= sub.id %>/draft.docx" title="অনুমোদনের আগে Word-এ কেমন দেখাবে তা দেখতে"><svg><use href="#i-doc"/></svg>খসড়া Word</a>
+    <button class="btn" type="button" onclick="window.print()"><svg><use href="#i-print"/></svg>প্রিন্ট</button>
+  </div>
+</div>
+
+<div class="two-col">
+  <div>
+    <% if (sub.status === 'changes' && sub.admin_note) { %><div class="flash warn"><strong>বিশ্ববিদ্যালয়কে পাঠানো মন্তব্য:</strong> <%= sub.admin_note %></div><% } %>
+    <% if (warnings.length && sub.status !== 'invited') { %>
+      <div class="panel no-print" style="border-color:#f0c7aa;background:#fffaf5">
+        <h3 style="color:var(--back)">যাচাইয়ে <%= shared.toBn(warnings.length) %>টি বিষয় চোখে পড়েছে</h3>
+        <ul class="warn-list"><% warnings.forEach(w => { %><li><%= w.msg %></li><% }) %></ul>
+      </div>
+    <% } %>
+    <div class="view-sheet"><div class="diary-page"><%- shared.renderEntryHTML(entry) %></div></div>
+
+    <div class="panel no-print" style="margin-top:1.25rem">
+      <h3>অতিরিক্ত তথ্য</h3>
+      <dl class="kv">
+        <dt>ইংরেজি নাম</dt><dd class="lat"><%= sub.data.nameEn || '—' %></dd>
+        <dt>তথ্য প্রদানকারী</dt><dd><%= sub.data.informant.name || '—' %><%= sub.data.informant.designation ? ', ' + sub.data.informant.designation : '' %></dd>
+        <dt>যোগাযোগ</dt><dd><%= sub.data.informant.phone || '—' %>, <span class="lat"><%= sub.data.informant.email || '—' %></span></dd>
+        <dt>ফরমের তারিখ</dt><dd><%= sub.data.informant.date ? shared.toBn(sub.data.informant.date.split('-').reverse().join('/')) : '—' %></dd>
+      </dl>
+    </div>
+  </div>
+
+  <div class="no-print">
+    <div class="panel">
+      <h3>ডায়েরির ক্রমিক নম্বর</h3>
+      <div class="serial-big">
+        <span class="num"><%= sub.serial_no ? shared.toBn(sub.serial_no) : '—' %></span>
+        <form method="post" action="/admin/s/<%= sub.id %>/serial">
+          <input type="text" name="serial_no" inputmode="numeric" value="<%= sub.serial_no || '' %>" placeholder="<%= nextSerial %>" aria-label="ক্রমিক নম্বর">
+          <button class="btn btn-sm" type="submit">সংরক্ষণ</button>
+        </form>
+      </div>
+      <p class="hint" style="margin-top:.5rem">ফাইলের নাম হবে: <strong><%= fileName %></strong></p>
+    </div>
+
+    <div class="panel">
+      <h3>সিদ্ধান্ত</h3>
+      <div class="actions-stack">
+      <% if (sub.status !== 'approved') { %>
+        <details class="act" <%= sub.status === 'pending' ? 'open' : '' %>>
+          <summary><svg width="16" height="16" style="color:var(--ok)"><use href="#i-check"/></svg>অনুমোদন করুন</summary>
+          <div class="body">
+            <form method="post" action="/admin/s/<%= sub.id %>/status">
+              <input type="hidden" name="action" value="approve">
+              <div><label for="ap-serial">ক্রমিক নম্বর</label><input id="ap-serial" name="serial_no" type="text" inputmode="numeric" value="<%= sub.serial_no || nextSerial %>" required></div>
+              <div><label for="ap-note">নোট (ঐচ্ছিক)</label><input id="ap-note" name="note" type="text"></div>
+              <button class="btn btn-primary" type="submit">অনুমোদন করে Word ফাইল তৈরি করুন</button>
+            </form>
+          </div>
+        </details>
+      <% } %>
+      <% if (['pending','approved','invited'].includes(sub.status)) { %>
+        <details class="act">
+          <summary>সংশোধনের জন্য ফেরত পাঠান</summary>
+          <div class="body">
+            <form method="post" action="/admin/s/<%= sub.id %>/status">
+              <input type="hidden" name="action" value="changes">
+              <div><label for="ch-note">কী সংশোধন করতে হবে</label><textarea id="ch-note" name="note" rows="3" required placeholder="যেমন: রেজিস্ট্রারের মোবাইল নম্বর দিন"></textarea><div class="hint">বিশ্ববিদ্যালয় তাদের লিংকে এই মন্তব্য দেখবে<%= smtpOk && S.notify_university === '1' ? ' এবং ই-মেইলে পাবে' : '' %>।</div></div>
+              <button class="btn" type="submit">ফেরত পাঠান</button>
+            </form>
+          </div>
+        </details>
+      <% } %>
+      <% if (sub.status === 'approved' || sub.status === 'rejected') { %>
+        <form method="post" action="/admin/s/<%= sub.id %>/status"><input type="hidden" name="action" value="reopen"><button class="btn" type="submit" style="width:100%">আবার পর্যালোচনায় আনুন</button></form>
+      <% } %>
+      <% if (sub.status !== 'rejected') { %>
+        <details class="act">
+          <summary style="color:var(--bad)">বাতিল করুন</summary>
+          <div class="body">
+            <form method="post" action="/admin/s/<%= sub.id %>/status" data-confirm="এই জমাটি বাতিল করবেন?">
+              <input type="hidden" name="action" value="reject">
+              <div><label for="rj-note">কারণ (ঐচ্ছিক)</label><input id="rj-note" name="note" type="text" placeholder="যেমন: একই বিশ্ববিদ্যালয়ের দ্বৈত জমা"></div>
+              <button class="btn btn-danger" type="submit">বাতিল করুন</button>
+            </form>
+          </div>
+        </details>
+      <% } %>
+      </div>
+    </div>
+
+    <div class="panel" id="word">
+      <h3>Word ফাইল</h3>
+      <% if (sub.status !== 'approved') { %>
+        <p class="small muted">অনুমোদনের পর চূড়ান্ত Word ফাইল তৈরি হবে। তার আগে কেমন দেখাবে দেখতে উপরের “খসড়া Word” ব্যবহার করুন।</p>
+      <% } else { %>
+        <% if (sub.doc_file) { %>
+          <div class="doc-card <%= sub.doc_outdated ? 'old' : '' %>">
+            <span class="ic">W</span>
+            <div><div class="fn"><%= fileName %></div><div class="small muted"><%= sub.doc_outdated ? 'তথ্য বা সেটিংস বদলেছে — আবার তৈরি করুন' : 'তৈরি: ' + fmtDate(sub.doc_generated_at) %></div></div>
+          </div>
+          <div style="display:flex;gap:.5rem;margin-top:.75rem;flex-wrap:wrap">
+            <a class="btn btn-primary" href="/admin/s/<%= sub.id %>/download"><svg><use href="#i-down"/></svg>ডাউনলোড</a>
+            <form method="post" action="/admin/s/<%= sub.id %>/generate"><button class="btn <%= sub.doc_outdated ? 'btn-gold' : '' %>" type="submit">আবার তৈরি করুন</button></form>
+          </div>
+        <% } else { %>
+          <form method="post" action="/admin/s/<%= sub.id %>/generate"><button class="btn btn-primary" type="submit"><svg><use href="#i-doc"/></svg>Word ফাইল তৈরি করুন</button></form>
+        <% } %>
+      <% } %>
+    </div>
+
+    <div class="panel" id="email">
+      <h3>ই-মেইলে পাঠান</h3>
+      <% if (!sub.doc_file) { %>
+        <p class="small muted">Word ফাইল তৈরি হলে এখান থেকে সংযুক্তিসহ পাঠাতে পারবেন।</p>
+      <% } else { %>
+        <% if (!smtpOk) { %><div class="flash warn small">ই-মেইল সার্ভার সেট করা নেই। <a href="/admin/settings#mail">সেটিংসে যান</a></div><% } %>
+        <form method="post" action="/admin/s/<%= sub.id %>/email" class="actions-stack">
+          <div><label for="m-to">প্রাপক</label><input id="m-to" name="to" type="text" class="lat" value="<%= mail.to %>" required><div class="hint">একাধিক হলে কমা দিন</div></div>
+          <div><label for="m-cc">সিসি</label><input id="m-cc" name="cc" type="text" class="lat"></div>
+          <div><label for="m-s">বিষয়</label><input id="m-s" name="subject" type="text" value="<%= mail.subject %>"></div>
+          <div><label for="m-b">বার্তা</label><textarea id="m-b" name="body" rows="6"><%= mail.body %></textarea></div>
+          <div class="small muted">সংযুক্তি: <%= fileName %></div>
+          <button class="btn btn-primary" type="submit" <%= smtpOk ? '' : 'disabled' %>><svg><use href="#i-mail"/></svg>ই-মেইল পাঠান</button>
+        </form>
+        <% if (mails.length) { %>
+          <ul class="timeline" style="margin-top:1rem">
+          <% mails.forEach(m => { %><li><span style="color:<%= m.status === 'sent' ? 'var(--ok)' : 'var(--bad)' %>"><%= m.status === 'sent' ? 'পাঠানো হয়েছে' : 'ব্যর্থ' %></span>: <span class="lat"><%= m.recipients %></span><% if (m.error) { %><div class="small" style="color:var(--bad)"><%= m.error %></div><% } %><div class="t"><%= fmtDate(m.at) %></div></li><% }) %>
+          </ul>
+        <% } %>
+      <% } %>
+    </div>
+
+    <div class="panel">
+      <h3>বিশ্ববিদ্যালয়ের ব্যক্তিগত লিংক</h3>
+      <p class="small muted">এই লিংক দিয়ে বিশ্ববিদ্যালয় অনুমোদনের আগ পর্যন্ত তথ্য দেখতে ও সংশোধন করতে পারে।</p>
+      <div class="copy-row"><input id="uniLink" type="text" readonly value="<%= link %>"><button type="button" class="btn btn-sm" data-copy="uniLink"><svg width="14" height="14"><use href="#i-copy"/></svg><span> কপি</span></button></div>
+    </div>
+
+    <div class="panel">
+      <h3>ইতিহাস</h3>
+      <ul class="timeline">
+        <% hist.forEach(h => { %><li><strong><%= ACT[h.action] || h.action %></strong><% if (h.note) { %><div class="small"><%= h.note %></div><% } %><div class="t"><%= fmtDate(h.at) %>, <%= h.actor %></div></li><% }) %>
+      </ul>
+    </div>
+
+    <form method="post" action="/admin/s/<%= sub.id %>/delete" data-confirm="এই জমা ও এর সব ইতিহাস স্থায়ীভাবে মুছে যাবে। নিশ্চিত?">
+      <button class="btn btn-ghost btn-danger btn-sm" type="submit">এই জমা মুছে ফেলুন</button>
+    </form>
+  </div>
+</div>
+<%- include('../partials/admin-bottom') %>

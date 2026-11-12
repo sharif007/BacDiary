@@ -1,0 +1,83 @@
+<%- include('../partials/admin-top', { title: 'সকল জমা' }) %>
+<div class="page-h">
+  <div><h1>সকল জমা</h1><p>বিশ্ববিদ্যালয়ের জমা দেওয়া তথ্য যাচাই করে অনুমোদন দিন। অনুমোদনের সাথে সাথে Word ফাইল তৈরি হয়।</p></div>
+  <div class="actions">
+    <a class="btn" href="/admin/export.csv<%= status ? '?status=' + status : '' %>"><svg><use href="#i-sheet"/></svg>Excel (CSV)</a>
+    <a class="btn btn-primary" href="/admin/compile"><svg><use href="#i-book"/></svg>ডায়েরি সংকলন</a>
+  </div>
+</div>
+
+<div class="pipeline" role="list">
+  <% ['invited','pending','changes','approved','rejected'].forEach(k => { %>
+    <a role="listitem" href="/admin?status=<%= status === k ? '' : k %>" class="<%= status === k ? 'on' : '' %>" title="<%= STATUS[k].hint %>">
+      <div class="n"><%= shared.toBn(counts[k]) %></div><div class="l"><i class="dot-<%= k %>"></i><%= STATUS[k].bn %></div>
+    </a>
+  <% }) %>
+</div>
+
+<div class="two-col">
+  <div class="panel" style="padding:0">
+    <div class="toolbar" style="padding:1rem 1rem 0">
+      <form method="get" action="/admin" role="search">
+        <% if (status) { %><input type="hidden" name="status" value="<%= status %>"><% } %>
+        <input type="search" name="q" value="<%= q %>" placeholder="নাম, ক্রমিক বা ই-মেইল দিয়ে খুঁজুন" aria-label="খুঁজুন">
+        <button class="btn" type="submit">খুঁজুন</button>
+      </form>
+      <% if (status || q) { %><a class="btn btn-ghost btn-sm" href="/admin">ফিল্টার মুছুন</a><% } %>
+      <span class="small muted" style="margin-left:auto"><%= shared.toBn(list.length) %>টি</span>
+    </div>
+    <% if (!list.length) { %>
+      <div class="empty">
+        <% if (status || q) { %>এই ফিল্টারে কিছু পাওয়া যায়নি।<% } else { %>
+        <p><strong>এখনো কোনো তথ্য জমা হয়নি।</strong></p><p>ডান পাশের লিংকটি বিশ্ববিদ্যালয়গুলোকে পাঠান, অথবা নির্দিষ্ট বিশ্ববিদ্যালয়ের জন্য আমন্ত্রণ লিংক তৈরি করুন।</p><% } %>
+      </div>
+    <% } else { %>
+    <div style="overflow-x:auto">
+    <table class="list">
+      <thead><tr><th>ক্রমিক</th><th>বিশ্ববিদ্যালয়</th><th>অবস্থা</th><th class="hide-sm">Word ফাইল</th><th class="hide-sm">সর্বশেষ হালনাগাদ</th></tr></thead>
+      <tbody>
+      <% list.forEach(s => { %>
+        <tr>
+          <td class="serial <%= s.serial_no ? '' : 'none' %>"><%= s.serial_no ? shared.toBn(s.serial_no) : '—' %></td>
+          <td class="uname"><a href="/admin/s/<%= s.id %>"><%= s.univ_name || '(নাম নেই)' %></a><div class="sub"><%= s.data.informant.name %><%= s.data.informant.designation ? ', ' + s.data.informant.designation : '' %></div></td>
+          <td><span class="pill <%= s.status %>"><%= STATUS[s.status].bn %></span></td>
+          <td class="hide-sm"><% if (s.doc_file) { %><span class="doc-flag <%= s.doc_outdated ? 'old' : '' %>"><%= s.doc_outdated ? 'পুরনো — আবার তৈরি করুন' : '✓ তৈরি হয়েছে' %></span><% } else { %><span class="small muted">—</span><% } %></td>
+          <td class="hide-sm small muted nowrap"><%= fmtDate(s.updated_at) %></td>
+        </tr>
+      <% }) %>
+      </tbody>
+    </table>
+    </div>
+    <% } %>
+  </div>
+
+  <div>
+    <div class="panel">
+      <h3>জমার লিংক শেয়ার করুন</h3>
+      <p class="small muted">এই লিংক যেকোনো বিশ্ববিদ্যালয়কে পাঠানো যায়। জমা দেওয়ার পর তারা সংশোধনের জন্য নিজস্ব লিংক পাবে।</p>
+      <div class="copy-row"><input id="pubLink" type="text" readonly value="<%= submitUrl %>"><button type="button" class="btn btn-sm" data-copy="pubLink"><svg width="14" height="14"><use href="#i-copy"/></svg><span> কপি</span></button></div>
+      <% if (S.form_open !== '1') { %><p class="small" style="color:var(--bad);margin:.6rem 0 0">ফরম এখন বন্ধ আছে — <a href="/admin/settings#form">চালু করুন</a></p><% } %>
+    </div>
+    <div class="panel">
+      <h3>নির্দিষ্ট বিশ্ববিদ্যালয়ের জন্য আমন্ত্রণ</h3>
+      <p class="small muted">নাম আগে থেকে বসানো একটি ব্যক্তিগত লিংক তৈরি হবে।</p>
+      <form method="post" action="/admin/invite">
+        <div class="field"><label for="inv-n">বিশ্ববিদ্যালয়ের নাম</label><input id="inv-n" name="nameBn" type="text" required></div>
+        <div class="grid g2">
+          <div class="field"><label for="inv-s">সংক্ষিপ্ত নাম</label><input id="inv-s" name="shortBn" type="text"></div>
+          <div class="field"><label for="inv-e">ই-মেইল</label><input id="inv-e" name="email" type="email" class="lat"></div>
+        </div>
+        <button class="btn btn-primary" type="submit">লিংক তৈরি করুন</button>
+      </form>
+    </div>
+    <div class="panel">
+      <h3>সাম্প্রতিক কার্যক্রম</h3>
+      <% if (!recent.length) { %><p class="small muted">এখনো কিছু হয়নি।</p><% } %>
+      <ul class="timeline">
+        <% const ACT = { submitted:'জমা দিয়েছে', resubmitted:'সংশোধন করে জমা দিয়েছে', approved:'অনুমোদিত', changes:'সংশোধনে ফেরত', rejected:'বাতিল', edited:'অ্যাডমিন সম্পাদনা', generated:'Word ফাইল তৈরি', emailed:'ই-মেইল পাঠানো', invited:'আমন্ত্রণ তৈরি', created:'অ্যাডমিন যোগ করেছেন', reopened:'আবার পর্যালোচনায়', serial:'ক্রমিক নম্বর' }; %>
+        <% recent.forEach(h => { %><li><a href="/admin/s/<%= h.submission_id %>"><%= h.univ_name || '—' %></a> — <%= ACT[h.action] || h.action %><div class="t"><%= fmtDate(h.at) %>, <%= h.actor %></div></li><% }) %>
+      </ul>
+    </div>
+  </div>
+</div>
+<%- include('../partials/admin-bottom') %>

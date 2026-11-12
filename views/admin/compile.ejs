@@ -1,0 +1,52 @@
+<%- include('../partials/admin-top', { title: 'ডায়েরি সংকলন' }) %>
+<div class="page-h">
+  <div><h1>ডায়েরি সংকলন</h1><p>সব অনুমোদিত বিশ্ববিদ্যালয়ের তথ্য ক্রমিক নম্বর অনুযায়ী একটি Word ফাইলে — সরাসরি ছাপাখানায় পাঠানোর উপযোগী।</p></div>
+</div>
+<div class="two-col">
+  <div class="panel" style="padding:0">
+    <div class="panel-h" style="padding:1rem 1rem 0"><h3>অন্তর্ভুক্ত হবে: <%= shared.toBn(approved.length - missingSerial.length) %>টি বিশ্ববিদ্যালয়</h3></div>
+    <% if (!approved.length) { %>
+      <div class="empty">এখনো কোনো বিশ্ববিদ্যালয় অনুমোদিত হয়নি। <a href="/admin?status=pending">পর্যালোচনাধীন জমাগুলো দেখুন</a>।</div>
+    <% } else { %>
+    <table class="list">
+      <thead><tr><th>ক্রমিক</th><th>বিশ্ববিদ্যালয়</th><th class="hide-sm">ফাইল</th></tr></thead>
+      <tbody>
+      <% approved.forEach(s => { %>
+        <tr><td class="serial <%= s.serial_no ? '' : 'none' %>"><%= s.serial_no ? shared.toBn(s.serial_no) : 'নেই' %></td>
+        <td class="uname"><a href="/admin/s/<%= s.id %>"><%= s.univ_name %></a></td>
+        <td class="hide-sm"><% if (s.doc_file) { %><a class="small" href="/admin/s/<%= s.id %>/download"><%= shared.fileName(s.serial_no, s.data) %></a><% } %></td></tr>
+      <% }) %>
+      </tbody>
+    </table>
+    <% } %>
+  </div>
+  <div>
+    <div class="panel">
+      <h3>সংকলিত Word ফাইল</h3>
+      <% if (missingSerial.length) { %><div class="flash warn small"><%= shared.toBn(missingSerial.length) %>টি অনুমোদিত বিশ্ববিদ্যালয়ের ক্রমিক নম্বর নেই, তাই বাদ যাবে।</div><% } %>
+      <form method="get" action="/admin/compile.docx" class="actions-stack">
+        <label class="check"><input type="checkbox" name="serial" value="1" checked onchange="this.form.serialOff.disabled=this.checked"> শিরোনামের আগে ক্রমিক নম্বর</label>
+        <input type="hidden" name="serial" value="0" id="serialOff" disabled>
+        <label class="check"><input type="checkbox" name="pageBreak" value="1"> প্রতিটি বিশ্ববিদ্যালয় নতুন পাতায়</label>
+        <button class="btn btn-primary" type="submit" <%= approved.length ? '' : 'disabled' %>><svg><use href="#i-down"/></svg>সংকলন ডাউনলোড করুন</button>
+      </form>
+    </div>
+    <div class="panel">
+      <h3>অন্যান্য ফরম্যাট</h3>
+      <div class="actions-stack">
+        <a class="btn" href="/admin/export.csv?status=approved"><svg><use href="#i-sheet"/></svg>অনুমোদিত তথ্য — Excel (CSV)</a>
+        <a class="btn" href="/admin/export.csv"><svg><use href="#i-sheet"/></svg>সব জমা — Excel (CSV)</a>
+      </div>
+    </div>
+    <div class="panel">
+      <h3>অগ্রগতি</h3>
+      <dl class="kv">
+        <dt>মোট জমা</dt><dd><%= shared.toBn(counts.all) %></dd>
+        <dt>অনুমোদিত</dt><dd><%= shared.toBn(counts.approved) %></dd>
+        <dt>বাকি যাচাই</dt><dd><%= shared.toBn(counts.pending) %></dd>
+        <dt>সংশোধনে</dt><dd><%= shared.toBn(counts.changes) %></dd>
+      </dl>
+    </div>
+  </div>
+</div>
+<%- include('../partials/admin-bottom') %>

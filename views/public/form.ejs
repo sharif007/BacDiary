@@ -1,0 +1,64 @@
+<%- include('../partials/head', { title: sub ? (sub.univ_name || 'তথ্য জমা') : 'তথ্য সংগ্রহ ফরম' }) %>
+<body>
+<header class="pub-head">
+  <div class="in">
+    <span class="logo-chip"><img class="logo" src="/static/img/bac-logo.png" alt="বাংলাদেশ অ্যাক্রেডিটেশন কাউন্সিলের লোগো" width="54" height="54"></span>
+    <div><div class="org">বাংলাদেশ অ্যাক্রেডিটেশন কাউন্সিল</div><div class="ttl">ডায়েরি ২০২৭ — তথ্য সংগ্রহ</div></div>
+    <% if (S.deadline) { %><div class="deadline">জমার শেষ তারিখ<b><%= shared.toBn(S.deadline.split('-').reverse().join('/')) %></b></div><% } %>
+  </div>
+</header>
+
+<form id="mainForm" class="pub-wrap" novalidate>
+  <div class="intro">
+    <div>
+      <h1>বিশ্ববিদ্যালয়ের প্রশাসনিক দপ্তর ও IQAC-এর তথ্য</h1>
+      <p><%= S.form_notice %></p>
+    </div>
+  </div>
+
+  <% if (sub) { %>
+  <div class="status-band <%= sub.status %>" role="status">
+    <div style="flex:1">
+      <% if (saved) { %><div class="flash" style="margin-bottom:.75rem">তথ্য সফলভাবে জমা হয়েছে। ধন্যবাদ।</div><% } %>
+      <div style="display:flex;gap:.6rem;align-items:center;flex-wrap:wrap"><strong><%= sub.univ_name || 'আপনার জমা' %></strong><span class="pill <%= sub.status %>"><%= STATUS[sub.status].bn %></span></div>
+      <% if (sub.status === 'changes' && sub.admin_note) { %>
+        <p style="margin:.6rem 0 0"><strong>কাউন্সিলের মন্তব্য:</strong> <%= sub.admin_note %></p>
+        <p class="small muted" style="margin:.25rem 0 0">নিচের তথ্য সংশোধন করে আবার জমা দিন।</p>
+      <% } else if (sub.status === 'pending') { %>
+        <p class="small muted" style="margin:.4rem 0 0">কাউন্সিল যাচাই করছে। অনুমোদনের আগ পর্যন্ত এই লিংক থেকে তথ্য সংশোধন করতে পারবেন।</p>
+      <% } else if (sub.status === 'approved') { %>
+        <p class="small muted" style="margin:.4rem 0 0">তথ্য অনুমোদিত হয়েছে। এখন আর সংশোধন করা যাবে না; প্রয়োজনে কাউন্সিলের সাথে যোগাযোগ করুন।</p>
+      <% } else if (sub.status === 'invited') { %>
+        <p class="small muted" style="margin:.4rem 0 0">নিচের ফরম পূরণ করে জমা দিন।</p>
+      <% } %>
+      <% if (sub.status !== 'invited') { %>
+      <label for="mylink" style="margin-top:.75rem">এই লিংকটি সংরক্ষণ করুন — পরে তথ্য দেখতে বা সংশোধন করতে লাগবে</label>
+      <div class="link-box"><input id="mylink" type="text" readonly value="<%= link %>"><button type="button" class="btn btn-sm" onclick="navigator.clipboard&&navigator.clipboard.writeText(document.getElementById('mylink').value);this.textContent='কপি হয়েছে'">কপি</button></div>
+      <% } %>
+    </div>
+  </div>
+  <% } %>
+
+  <div class="flash warn" id="draftNote" hidden style="grid-column:1/-1">আগের অসমাপ্ত তথ্য ফিরিয়ে আনা হয়েছে। <button type="button" class="btn btn-ghost btn-sm">মুছে নতুন করে শুরু করুন</button></div>
+  <div class="flash error err-summary" id="errSummary" role="alert" hidden></div>
+
+  <div id="formRoot"></div>
+
+  <aside class="preview-col" aria-label="ডায়েরিতে যেভাবে ছাপা হবে">
+    <button type="button" class="preview-toggle" id="previewToggle" aria-expanded="false"><span>ডায়েরিতে যেভাবে ছাপা হবে</span><span>▴</span></button>
+    <div class="preview-cap"><strong>ডায়েরিতে যেভাবে ছাপা হবে</strong><span>লিখতে লিখতে হালনাগাদ হয়</span></div>
+    <div class="sheet"><div class="diary-page" id="preview"></div></div>
+  </aside>
+
+  <% if (editable) { %>
+  <div class="submit-bar">
+    <span class="small muted">জমা দেওয়ার পর একটি ব্যক্তিগত লিংক পাবেন, যা দিয়ে অনুমোদনের আগ পর্যন্ত তথ্য সংশোধন করা যাবে।</span>
+    <button type="submit" class="btn btn-primary btn-lg"><%= mode === 'new' || sub.status === 'invited' ? 'তথ্য জমা দিন' : 'সংশোধিত তথ্য জমা দিন' %></button>
+  </div>
+  <% } %>
+</form>
+<script>window.FORM_CONFIG = <%- JSON.stringify({ data, editable, mode, endpoint: sub ? '/s/' + sub.token : '/submit', banglaDigits: S.bangla_digits !== '0', adminMode: false }).replace(/</g, '\\u003c') %>;</script>
+<script src="/static/js/shared.js"></script>
+<script src="/static/js/form.js"></script>
+</body>
+</html>

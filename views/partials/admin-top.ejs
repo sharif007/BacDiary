@@ -1,0 +1,18 @@
+<%- include('head', { title }) %>
+<body>
+<%- include('icons') %>
+<div class="mob-top no-print"><button type="button" onclick="document.querySelector('.side').classList.toggle('open')" aria-label="মেনু"><svg width="24" height="24"><use href="#i-menu"/></svg></button><img class="logo" src="/static/img/bac-logo.png" alt="" width="28" height="28"><b>BAC ডায়েরি ২০২৭</b></div>
+<div class="adm">
+  <nav class="side" aria-label="অ্যাডমিন মেনু">
+    <div class="brand"><span class="logo-chip"><img class="logo" src="/static/img/bac-logo.png" alt="বাংলাদেশ অ্যাক্রেডিটেশন কাউন্সিলের লোগো" width="38" height="38"></span><div><b>ডায়েরি ২০২৭</b><span>অ্যাডমিন প্যানেল</span></div></div>
+    <% const pc = locals.navCounts || null; %>
+    <a class="nav <%= path === '/admin' || path.startsWith('/admin/s/') ? 'on' : '' %>" href="/admin"><svg><use href="#i-home"/></svg>সকল জমা</a>
+    <a class="nav <%= path === '/admin/new' ? 'on' : '' %>" href="/admin/new"><svg><use href="#i-plus"/></svg>নিজে তথ্য যোগ করুন</a>
+    <a class="nav <%= path === '/admin/compile' ? 'on' : '' %>" href="/admin/compile"><svg><use href="#i-book"/></svg>ডায়েরি সংকলন</a>
+    <a class="nav <%= path === '/admin/emails' ? 'on' : '' %>" href="/admin/emails"><svg><use href="#i-mail"/></svg>ই-মেইল লগ</a>
+    <a class="nav <%= path === '/admin/settings' ? 'on' : '' %>" href="/admin/settings"><svg><use href="#i-gear"/></svg>সেটিংস</a>
+    <a class="nav" href="/submit" target="_blank" rel="noopener"><svg><use href="#i-doc"/></svg>জমার পাতা দেখুন</a>
+    <div class="foot"><%= admin.display_name || admin.username %><br><form method="post" action="/admin/logout"><button type="submit">লগআউট</button></form></div>
+  </nav>
+  <main class="main">
+    <% if (flash) { %><div class="flash <%= flash.type %>" role="status"><%= flash.msg %></div><% } %>

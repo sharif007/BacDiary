@@ -1,0 +1,24 @@
+<%- include('../partials/head', { title: 'অ্যাডমিন লগইন' }) %>
+<body>
+<div class="login">
+  <div class="art">
+    <span class="ribbon" aria-hidden="true"></span>
+    <span class="logo-chip"><img class="logo" src="/static/img/bac-logo.png" alt="বাংলাদেশ অ্যাক্রেডিটেশন কাউন্সিলের লোগো" width="96" height="96"></span>
+    <div>
+      <h1>ডায়েরি ২০২৭ তথ্য ব্যবস্থাপনা</h1>
+      <p>বিশ্ববিদ্যালয়গুলোর জমা দেওয়া তথ্য যাচাই, অনুমোদন, Word ফাইল তৈরি ও ই-মেইলে পাঠানো।</p>
+    </div>
+    <div class="small" style="opacity:.7">বাংলাদেশ অ্যাক্রেডিটেশন কাউন্সিল</div>
+  </div>
+  <div class="form">
+    <form method="post" action="/admin/login">
+      <h2>অ্যাডমিন লগইন</h2>
+      <% if (error) { %><div class="flash error"><%= error %></div><% } %>
+      <input type="hidden" name="next" value="<%= next %>">
+      <div class="field"><label for="u">ইউজারনেম</label><input id="u" name="username" type="text" autocomplete="username" required autofocus></div>
+      <div class="field"><label for="p">পাসওয়ার্ড</label><input id="p" name="password" type="password" autocomplete="current-password" required></div>
+      <button class="btn btn-primary btn-lg" style="width:100%;justify-content:center" type="submit">লগইন করুন</button>
+    </form>
+  </div>
+</div>
+</body></html>

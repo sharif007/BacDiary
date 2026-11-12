@@ -1,0 +1,21 @@
+<%- include('../partials/admin-top', { title: 'ই-মেইল লগ' }) %>
+<div class="page-h"><div><h1>ই-মেইল লগ</h1><p>এই সিস্টেম থেকে পাঠানো সব ই-মেইল ও তার ফলাফল।</p></div></div>
+<div class="panel" style="padding:0">
+  <% if (!list.length) { %><div class="empty">এখনো কোনো ই-মেইল পাঠানো হয়নি।</div><% } else { %>
+  <div style="overflow-x:auto">
+  <table class="list">
+    <thead><tr><th>সময়</th><th>বিশ্ববিদ্যালয়</th><th>প্রাপক</th><th class="hide-sm">বিষয়</th><th>ফলাফল</th></tr></thead>
+    <tbody>
+    <% list.forEach(m => { %>
+      <tr><td class="small nowrap"><%= fmtDate(m.at) %></td>
+      <td class="uname"><% if (m.submission_id) { %><a href="/admin/s/<%= m.submission_id %>"><%= m.univ_name %></a><% } else { %>—<% } %></td>
+      <td class="lat small"><%= m.recipients %></td>
+      <td class="hide-sm small"><%= m.subject %></td>
+      <td><span class="pill <%= m.status === 'sent' ? 'approved' : 'rejected' %>"><%= m.status === 'sent' ? 'পাঠানো হয়েছে' : 'ব্যর্থ' %></span><% if (m.error) { %><div class="small" style="color:var(--bad);max-width:28ch"><%= m.error %></div><% } %></td></tr>
+    <% }) %>
+    </tbody>
+  </table>
+  </div>
+  <% } %>
+</div>
+<%- include('../partials/admin-bottom') %>

@@ -1,0 +1,12 @@
+  </main>
+</div>
+<script>
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-copy]'); if (!b) return;
+  const inp = document.getElementById(b.dataset.copy);
+  navigator.clipboard ? navigator.clipboard.writeText(inp.value).then(() => { b.lastChild.textContent = ' কপি হয়েছে'; setTimeout(() => b.lastChild.textContent = ' কপি', 1600); }) : (inp.select(), document.execCommand('copy'));
+});
+document.addEventListener('submit', e => { const m = e.target.dataset.confirm; if (m && !confirm(m)) e.preventDefault(); });
+</script>
+</body>
+</html>
